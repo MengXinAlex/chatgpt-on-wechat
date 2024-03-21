@@ -120,13 +120,27 @@ class ChatGPTBot(Bot, OpenAIImage):
             # if api_key == None, the default openai.api_key will be used
             if args is None:
                 args = self.args
-            response = openai.ChatCompletion.create(api_key=api_key, messages=session.messages, **args)
+            # response = openai.ChatCompletion.create(api_key=api_key, messages=session.messages, **args)
+            response = {
+                "choices": [
+                    {
+                        "message": {
+                            "content": "测试成功！ 即将连接API!"
+                        }
+                    }
+                ],
+                "usage": {
+                    "total_tokens": 1,
+                    "completion_tokens": 1
+                }
+
+            }
             # logger.debug("[CHATGPT] response={}".format(response))
             # logger.info("[ChatGPT] reply={}, total_tokens={}".format(response.choices[0]['message']['content'], response["usage"]["total_tokens"]))
             return {
                 "total_tokens": response["usage"]["total_tokens"],
                 "completion_tokens": response["usage"]["completion_tokens"],
-                "content": response.choices[0]["message"]["content"],
+                "content": response["choices"][0]["message"]["content"]
             }
         except Exception as e:
             need_retry = retry_count < 2
