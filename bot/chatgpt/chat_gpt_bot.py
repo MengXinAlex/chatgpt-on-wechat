@@ -5,6 +5,7 @@ import time
 import openai
 import openai.error
 import requests
+import json
 
 from bot.bot import Bot
 from bot.chatgpt.chat_gpt_session import ChatGPTSession
@@ -121,11 +122,27 @@ class ChatGPTBot(Bot, OpenAIImage):
             if args is None:
                 args = self.args
             # response = openai.ChatCompletion.create(api_key=api_key, messages=session.messages, **args)
+
+            payload = json.dumps({
+                "message": str(session.messages[1]["content"]),
+                "history": []
+            })
+            url = "http://localhost:8000/api/chat"
+
+            headers = {
+                'Content-Type': 'application/json'
+            }
+
+            response = requests.request("POST", url, headers=headers, data=payload)
+
+            print(response.text, response.status_code, response.headers)
+            json_response = response.json()
+
             response = {
                 "choices": [
                     {
                         "message": {
-                            "content": "测试成功！ 即将连接API!"
+                            "content": json_response["answer"]
                         }
                     }
                 ],
