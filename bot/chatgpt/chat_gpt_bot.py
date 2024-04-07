@@ -125,7 +125,7 @@ class ChatGPTBot(Bot, OpenAIImage):
 
             payload = json.dumps({
                 "message": str(session.messages[-1]["content"]),
-                "history": [str(history_record["content"]) for history_record in session.messages[1:-1]],
+                "history": [history_record for history_record in session.messages[1:-1]],
             })
             url = "http://localhost:8000/api/chat"
 
