@@ -57,7 +57,10 @@ class Query:
                 if context:
                     channel.produce(context)
                 # The reply will be sent by channel.send() in another thread
-                return "success"
+                reply_text = "正在生成答案中，请稍后"
+                replyPost = create_reply(reply_text, msg)
+                return encrypt_func(replyPost.render())
+                # return "success"
             elif msg.type == "event":
                 logger.info("[wechatmp] Event {} from {}".format(msg.event, msg.source))
                 if msg.event in ["subscribe", "subscribe_scan"]:
