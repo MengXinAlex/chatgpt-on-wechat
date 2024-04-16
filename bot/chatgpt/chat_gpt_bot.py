@@ -133,10 +133,16 @@ class ChatGPTBot(Bot, OpenAIImage):
                 'Content-Type': 'application/json'
             }
 
-            response = requests.request("POST", url, headers=headers, data=payload)
+            # response = requests.request("POST", url, headers=headers, data=payload)
 
-            print(response.text, response.status_code, response.headers)
-            json_response = response.json()
+            s = requests.Session()
+            response_str = ""
+            with s.get(url, headers=None, stream=True) as resp:
+                for line in resp.iter_lines():
+                    if line:
+                        response_str += line.decode("utf-8")
+
+            json_response = json.loads(response_str)
 
             response = {
                 "choices": [
@@ -153,7 +159,6 @@ class ChatGPTBot(Bot, OpenAIImage):
 
             }
             # logger.debug("[CHATGPT] response={}".format(response))
-            # logger.info("[ChatGPT] reply={}, total_tokens={}".format(response.choices[0]['message']['content'], response["usage"]["total_tokens"]))
             return {
                 "total_tokens": response["usage"]["total_tokens"],
                 "completion_tokens": response["usage"]["completion_tokens"],
