@@ -1,9 +1,9 @@
 {
-  "channel_type": "wechatmp",
+  "channel_type": "wechatmp_service",
   "wechatmp_token": "123",
   "wechatmp_port": 80,
-  "wechatmp_app_id": "wx642c5ae7864a4e21",
-  "wechatmp_app_secret": "7ec410b7c882c56adebd785d6ff5885a",
+  "wechatmp_app_id": "wx8b5129d5061ca23f",
+  "wechatmp_app_secret": "3fd614510f40256bc74fd3e1ab7daa13",
   "wechatmp_aes_key": "8T1y29ZhFXP6rXH27q1SJFVMoTSMbvTW6tBVTGsyePz",
   "proxy": "",
   "hot_reload": false,
