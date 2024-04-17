@@ -142,7 +142,6 @@ class ChatGPTBot(Bot, OpenAIImage):
             #     for line in resp.iter_lines():
             #         if line:
             #             response_str += line.decode("utf-8")
-            # logger.info("response_str: " + response_str)
 
             response = requests.post(url, json=payload, headers=headers, stream=True)
 
@@ -151,6 +150,7 @@ class ChatGPTBot(Bot, OpenAIImage):
                     response_str += line.decode('utf-8') + '\n'
 
             json_response = json.loads(response_str)
+            logger.info("response_str: " + response_str)
 
             response = {
                 "choices": [
