@@ -135,13 +135,20 @@ class ChatGPTBot(Bot, OpenAIImage):
 
             # response = requests.request("POST", url, headers=headers, data=payload)
 
-            s = requests.Session()
             response_str = ""
-            with s.get(url, headers=None, stream=True) as resp:
-                for line in resp.iter_lines():
-                    if line:
-                        response_str += line.decode("utf-8")
-            logger.info("response_str: " + response_str)
+
+            # s = requests.Session()
+            # with s.get(url, headers=None, stream=True) as resp:
+            #     for line in resp.iter_lines():
+            #         if line:
+            #             response_str += line.decode("utf-8")
+            # logger.info("response_str: " + response_str)
+
+            response = requests.post(url, json=payload, headers=headers, stream=True)
+
+            for line in response.iter_lines():
+                if line:
+                    response_str += line.decode('utf-8') + '\n'
 
             json_response = json.loads(response_str)
 
