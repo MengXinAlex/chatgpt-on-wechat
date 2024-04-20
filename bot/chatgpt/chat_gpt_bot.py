@@ -147,7 +147,7 @@ class ChatGPTBot(Bot, OpenAIImage):
 
             for line in response.iter_lines():
                 if line:
-                    response_str += line
+                    response_str += line.decode('utf-8')
 
             logger.info("response_str: " + response_str)
             json_response = json.loads(response_str)
