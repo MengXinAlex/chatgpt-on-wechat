@@ -123,10 +123,10 @@ class ChatGPTBot(Bot, OpenAIImage):
                 args = self.args
             # response = openai.ChatCompletion.create(api_key=api_key, messages=session.messages, **args)
 
-            payload = json.dumps({
+            payload = {
                 "message": str(session.messages[-1]["content"]),
                 "history": [history_record for history_record in session.messages[1:-1]],
-            })
+            }
             url = "http://localhost:8000/api/chat"
 
             headers = {
