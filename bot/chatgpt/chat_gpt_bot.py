@@ -143,13 +143,10 @@ class ChatGPTBot(Bot, OpenAIImage):
             #         if line:
             #             response_str += line.decode("utf-8")
 
-            response = requests.post(url, json=payload, headers=headers, stream=True)
+            response = requests.post(url, json=payload, headers=headers)
 
-            for line in response.iter_lines():
-                if line:
-                    response_str += line.decode('utf-8')
-
-            logger.info("response_str: " + response_str)
+            response_str = response.text
+            # logger.info("response_str: " + response_str)
 
             try:
                 json.loads(response_str)
