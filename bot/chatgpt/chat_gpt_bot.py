@@ -150,27 +150,17 @@ class ChatGPTBot(Bot, OpenAIImage):
                     response_str += line.decode('utf-8')
 
             logger.info("response_str: " + response_str)
-            json_response = json.loads(response_str)
 
-            response = {
-                "choices": [
-                    {
-                        "message": {
-                            "content": json_response["answer"]
-                        }
-                    }
-                ],
-                "usage": {
-                    "total_tokens": 1,
-                    "completion_tokens": 1
-                }
+            try:
+                json.loads(response_str)
+                json_response = json.loads(response_str)['answer']
+            except ValueError as e:
+                json_response = response_str
 
-            }
-            # logger.debug("[CHATGPT] response={}".format(response))
             return {
-                "total_tokens": response["usage"]["total_tokens"],
-                "completion_tokens": response["usage"]["completion_tokens"],
-                "content": response["choices"][0]["message"]["content"]
+                "total_tokens": 1,
+                "completion_tokens": 1,
+                "content": json_response
             }
         except Exception as e:
             need_retry = retry_count < 2
