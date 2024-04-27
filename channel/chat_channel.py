@@ -171,6 +171,7 @@ class ChatChannel(Channel):
             context["stream"] = True
             reply = self._generate_reply(context)
             for reply_content in reply:
+                logger.info("[WX] ready to handle context: type={}, content={}".format(context.type, context.content))
                 Reply_content = Reply(ReplyType.TEXT, reply_content)
                 decorated_reply = self._decorate_reply(context, Reply_content)
                 self._send(decorated_reply, context)
@@ -297,6 +298,7 @@ class ChatChannel(Channel):
 
     def _send(self, reply: Reply, context: Context, retry_cnt=0):
         try:
+            logger.debug("[WX] sendMsg: reply={}, context={}".format(reply, context))
             self.send(reply, context)
         except Exception as e:
             logger.error("[WX] sendMsg error: {}".format(str(e)))

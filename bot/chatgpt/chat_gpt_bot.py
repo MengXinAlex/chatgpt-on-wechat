@@ -136,17 +136,17 @@ class ChatGPTBot(Bot, OpenAIImage):
             response_prev = ""
             response = requests.post(url, json=payload, headers=headers, stream=True)
 
-            if response.headers.get('content-type') == 'text/plain':
+            if response.headers.get('content-type') == 'text/plain; charset=utf-8':
                 logger.info("Answer from library: " + response.content.decode('utf-8'))
                 return response.content.decode('utf-8')
 
             for line in response.iter_content(chunk_size=4096):
                 if line:
                     response_str = line.decode('utf-8')
-                    if len(response_str) - len(response_prev) > 100:
+                    if len(response_str) - len(response_prev) > 200:
+                        logger.info("yield response_str: " + response_str)
                         yield response_str[len(response_prev):]
                         response_prev = response_str
-                        logger.info("yield response_str: " + response_str)
 
             logger.info("final response body: " + response_str)
 
