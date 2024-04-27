@@ -138,30 +138,30 @@ class ChatGPTBot(Bot, OpenAIImage):
 
             if response.headers.get('content-type') == 'text/plain; charset=utf-8':
                 logger.info("Answer from library: " + response.content.decode('utf-8'))
-                return response.content.decode('utf-8')
+                yield response.content.decode('utf-8')
+            else:
+                for line in response.iter_content(chunk_size=4096):
+                    if line:
+                        response_str = line.decode('utf-8').replace('*', '')
+                        if len(response_str) - len(response_prev) > 200:
+                            # find the last \n in response_str
+                            last_newline = response_str.rfind('\n')
+                            if last_newline != -1:
+                                logger.info("yield response_str: " + response_str[:last_newline])
+                                yield response_str[:last_newline]
+                                response_prev = response_str[:last_newline]
+                            else:
+                                logger.info("yield response_str: " + response_str)
+                                yield response_str[len(response_prev):]
+                                response_prev = response_str
 
-            for line in response.iter_content(chunk_size=4096):
-                if line:
-                    response_str = line.decode('utf-8').replace('*', '')
-                    if len(response_str) - len(response_prev) > 200:
-                        # find the last \n in response_str
-                        last_newline = response_str.rfind('\n')
-                        if last_newline != -1:
-                            logger.info("yield response_str: " + response_str[:last_newline])
-                            yield response_str[:last_newline]
-                            response_prev = response_str[:last_newline]
-                        else:
-                            logger.info("yield response_str: " + response_str)
-                            yield response_str[len(response_prev):]
-                            response_prev = response_str
+                logger.info("final response body: " + response_str)
 
-            logger.info("final response body: " + response_str)
+                json_response = response_str[len(response_prev):] + "\n问题回答完毕"
 
-            json_response = response_str[len(response_prev):] + "\n 问题回答完毕"
+                logger.info("last response_str: " + json_response)
 
-            logger.info("last response_str: " + json_response)
-
-            yield json_response
+                yield json_response
         except Exception as e:
             need_retry = retry_count < 2
             result = {"completion_tokens": 0, "content": "我现在有点累了，等会再来吧"}
