@@ -165,20 +165,31 @@ class ChatChannel(Channel):
     def _handle(self, context: Context):
         if context is None or not context.content:
             return
-        logger.debug("[WX] ready to handle context: {}".format(context))
-        # reply的构建步骤
-        reply = self._generate_reply(context)
 
-        logger.debug("[WX] ready to decorate reply: {}".format(reply))
+        if context.type == ContextType.TEXT and not context.content.startswith("#"):
+            # reply = self._generate_stream_reply(context)
+            context["stream"] = True
+            reply = self._generate_reply(context)
+            for reply_content in reply:
+                Reply_content = Reply(ReplyType.TEXT, reply_content)
+                decorated_reply = self._decorate_reply(context, Reply_content)
+                self._send(decorated_reply, context)
+        else:
+            logger.debug("[WX] ready to handle context: {}".format(context))
 
-        # reply的包装步骤
-        if reply and reply.content:
-            reply = self._decorate_reply(context, reply)
+            # reply的构建步骤
+            reply = self._generate_reply(context)
 
-            # reply的发送步骤
-            self._send_reply(context, reply)
+            logger.debug("[WX] ready to decorate reply: {}".format(reply))
 
-    def _generate_reply(self, context: Context, reply: Reply = Reply()) -> Reply:
+            # reply的包装步骤
+            if reply and reply.content:
+                reply = self._decorate_reply(context, reply)
+
+                # reply的发送步骤
+                self._send_reply(context, reply)
+
+    def _generate_reply(self, context: Context, reply: Reply = Reply()):
         e_context = PluginManager().emit_event(
             EventContext(
                 Event.ON_HANDLE_CONTEXT,

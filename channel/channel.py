@@ -34,7 +34,7 @@ class Channel(object):
         """
         raise NotImplementedError
 
-    def build_reply_content(self, query, context: Context = None) -> Reply:
+    def build_reply_content(self, query, context: Context = None):
         return Bridge().fetch_reply_content(query, context)
 
     def build_voice_to_text(self, voice_file) -> Reply:

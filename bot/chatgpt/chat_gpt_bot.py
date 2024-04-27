@@ -72,10 +72,9 @@ class ChatGPTBot(Bot, OpenAIImage):
             if model:
                 new_args = self.args.copy()
                 new_args["model"] = model
-            # if context.get('stream'):
-            #     # reply in stream
-            #     return self.reply_text_stream(query, new_query, session_id)
-
+            if context.get('stream'):
+                # reply in stream
+                return self.reply_text_stream(session, api_key, args=new_args)
             reply_content = self.reply_text(session, api_key, args=new_args)
             logger.debug(
                 "[CHATGPT] new_query={}, session_id={}, reply_cont={}, completion_tokens={}".format(
@@ -106,6 +105,107 @@ class ChatGPTBot(Bot, OpenAIImage):
         else:
             reply = Reply(ReplyType.ERROR, "Bot不支持处理{}类型的消息".format(context.type))
             return reply
+
+    def reply_text_stream(self, session: ChatGPTSession, api_key=None, args=None, retry_count=0):
+        """
+        call openai's ChatCompletion to get the answer
+        :param session: a conversation session
+        :param session_id: session id
+        :param retry_count: retry count
+        :return: {}
+        """
+        try:
+            if conf().get("rate_limit_chatgpt") and not self.tb4chatgpt.get_token():
+                raise openai.error.RateLimitError("RateLimitError: rate limit exceeded")
+            # if api_key == None, the default openai.api_key will be used
+            if args is None:
+                args = self.args
+            # response = openai.ChatCompletion.create(api_key=api_key, messages=session.messages, **args)
+
+            payload = {
+                "message": str(session.messages[-1]["content"]),
+                "history": [history_record for history_record in session.messages[1:-1]],
+            }
+            url = "http://localhost:8000/api/chat"
+
+            headers = {
+                'Content-Type': 'application/json'
+            }
+
+            response_str = ""
+            response_prev = ""
+            response = requests.post(url, json=payload, headers=headers, stream=True)
+
+            if response.headers.get('content-type') != 'text/event-stream':
+                logger.info("Answer from library: " + response.content.decode('utf-8'))
+                return {
+                            "total_tokens": 1,
+                            "completion_tokens": 1,
+                            "content": response.content.decode('utf-8')
+                        }
+
+            for line in response.iter_content(chunk_size=2048):
+                if line:
+                    response_str = line.decode('utf-8')
+                    if len(response_str) - len(response_prev) > 100:
+                        yield {
+                            "total_tokens": 1,
+                            "completion_tokens": 1,
+                            "content": response_str[len(response_prev):]
+                        }
+                        response_prev = response_str
+                        logger.info("yield response_str: " + response_str)
+
+            logger.info("final response body: " + response_str)
+
+            json_response = response_str[len(response_prev):]
+
+            logger.info("last response_str: " + json_response)
+
+            # try:
+            #     json.loads(response_str)
+            #     json_response = json.loads(response_str)['answer']
+            # except ValueError as e:
+            #     json_response = response_str
+
+            yield {
+                "total_tokens": 1,
+                "completion_tokens": 1,
+                "content": json_response
+            }
+        except Exception as e:
+            need_retry = retry_count < 2
+            result = {"completion_tokens": 0, "content": "我现在有点累了，等会再来吧"}
+            if isinstance(e, openai.error.RateLimitError):
+                logger.warn("[CHATGPT] RateLimitError: {}".format(e))
+                result["content"] = "提问太快啦，请休息一下再问我吧"
+                if need_retry:
+                    time.sleep(20)
+            elif isinstance(e, openai.error.Timeout):
+                logger.warn("[CHATGPT] Timeout: {}".format(e))
+                result["content"] = "我没有收到你的消息"
+                if need_retry:
+                    time.sleep(5)
+            elif isinstance(e, openai.error.APIError):
+                logger.warn("[CHATGPT] Bad Gateway: {}".format(e))
+                result["content"] = "请再问我一次"
+                if need_retry:
+                    time.sleep(10)
+            elif isinstance(e, openai.error.APIConnectionError):
+                logger.warn("[CHATGPT] APIConnectionError: {}".format(e))
+                result["content"] = "我连接不到你的网络"
+                if need_retry:
+                    time.sleep(5)
+            else:
+                logger.exception("[CHATGPT] Exception: {}".format(e))
+                need_retry = False
+                self.sessions.clear_session(session.session_id)
+
+            if need_retry:
+                logger.warn("[CHATGPT] 第{}次重试".format(retry_count + 1))
+                return self.reply_text(session, api_key, args, retry_count + 1)
+            else:
+                return result
 
     def reply_text(self, session: ChatGPTSession, api_key=None, args=None, retry_count=0) -> dict:
         """
