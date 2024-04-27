@@ -148,10 +148,12 @@ class ChatGPTBot(Bot, OpenAIImage):
                             last_newline = response_str.rfind('\n')
                             if last_newline != -1:
                                 logger.info("yield response_str: " + response_str[:last_newline])
+                                logger.info("response_prev: " + response_prev)
                                 yield response_str[:last_newline]
                                 response_prev = response_str[:last_newline]
                             else:
-                                logger.info("yield response_str: " + response_str)
+                                logger.info("yield response_str_no_line: " + response_str)
+                                logger.info("response_prev_no_line: " + response_prev)
                                 yield response_str[len(response_prev):]
                                 response_prev = response_str
 
