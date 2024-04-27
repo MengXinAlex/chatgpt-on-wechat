@@ -136,7 +136,7 @@ class ChatGPTBot(Bot, OpenAIImage):
             response_prev = ""
             response = requests.post(url, json=payload, headers=headers, stream=True)
 
-            if response.headers.get('content-type') != 'text/event-stream':
+            if response.headers.get('content-type') == 'text/plain':
                 logger.info("Answer from library: " + response.content.decode('utf-8'))
                 return {
                             "total_tokens": 1,
