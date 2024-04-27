@@ -142,23 +142,24 @@ class ChatGPTBot(Bot, OpenAIImage):
 
             for line in response.iter_content(chunk_size=4096):
                 if line:
-                    response_str = line.decode('utf-8')
+                    response_str = line.decode('utf-8').replace('*', '')
                     if len(response_str) - len(response_prev) > 200:
-                        logger.info("yield response_str: " + response_str)
-                        yield response_str[len(response_prev):]
-                        response_prev = response_str
+                        # find the last \n in response_str
+                        last_newline = response_str.rfind('\n')
+                        if last_newline != -1:
+                            logger.info("yield response_str: " + response_str[:last_newline])
+                            yield response_str[:last_newline]
+                            response_prev = response_str[:last_newline]
+                        else:
+                            logger.info("yield response_str: " + response_str)
+                            yield response_str[len(response_prev):]
+                            response_prev = response_str
 
             logger.info("final response body: " + response_str)
 
-            json_response = response_str[len(response_prev):]
+            json_response = response_str[len(response_prev):] + "\n 问题回答完毕"
 
             logger.info("last response_str: " + json_response)
-
-            # try:
-            #     json.loads(response_str)
-            #     json_response = json.loads(response_str)['answer']
-            # except ValueError as e:
-            #     json_response = response_str
 
             yield json_response
         except Exception as e:
