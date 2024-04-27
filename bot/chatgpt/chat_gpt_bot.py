@@ -138,21 +138,13 @@ class ChatGPTBot(Bot, OpenAIImage):
 
             if response.headers.get('content-type') == 'text/plain':
                 logger.info("Answer from library: " + response.content.decode('utf-8'))
-                return {
-                            "total_tokens": 1,
-                            "completion_tokens": 1,
-                            "content": response.content.decode('utf-8')
-                        }
+                return response.content.decode('utf-8')
 
             for line in response.iter_content(chunk_size=4096):
                 if line:
                     response_str = line.decode('utf-8')
                     if len(response_str) - len(response_prev) > 100:
-                        yield {
-                            "total_tokens": 1,
-                            "completion_tokens": 1,
-                            "content": response_str[len(response_prev):]
-                        }
+                        yield response_str[len(response_prev):]
                         response_prev = response_str
                         logger.info("yield response_str: " + response_str)
 
@@ -168,11 +160,7 @@ class ChatGPTBot(Bot, OpenAIImage):
             # except ValueError as e:
             #     json_response = response_str
 
-            yield {
-                "total_tokens": 1,
-                "completion_tokens": 1,
-                "content": json_response
-            }
+            yield json_response
         except Exception as e:
             need_retry = retry_count < 2
             result = {"completion_tokens": 0, "content": "我现在有点累了，等会再来吧"}
