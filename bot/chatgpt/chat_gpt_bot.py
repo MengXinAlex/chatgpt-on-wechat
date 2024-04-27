@@ -144,7 +144,7 @@ class ChatGPTBot(Bot, OpenAIImage):
                             "content": response.content.decode('utf-8')
                         }
 
-            for line in response.iter_content(chunk_size=2048):
+            for line in response.iter_content(chunk_size=4096):
                 if line:
                     response_str = line.decode('utf-8')
                     if len(response_str) - len(response_prev) > 100:
