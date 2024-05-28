@@ -61,6 +61,10 @@ class ChatGPTBot(Bot, OpenAIImage):
             elif query == "#更新配置":
                 load_config()
                 reply = Reply(ReplyType.INFO, "配置已更新")
+            elif query == "#测试消息跳转":
+                load_config()
+                reply = Reply(ReplyType.INFO, "<a href=\"weixin://bizmsgmenu?msgmenucontent=点击自动发送测试成功&msgmenuid=1"
+                                              "\">请点击文字</a>")
             if reply:
                 return reply
             session = self.sessions.session_query(query, session_id)
