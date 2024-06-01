@@ -1,7 +1,7 @@
 import time
 
 import openai
-import openai.error
+# import openai.error
 
 from common.log import logger
 from common.token_bucket import TokenBucket
@@ -30,14 +30,14 @@ class OpenAIImage(object):
             image_url = response["data"][0]["url"]
             logger.info("[OPEN_AI] image_url={}".format(image_url))
             return True, image_url
-        except openai.error.RateLimitError as e:
-            logger.warn(e)
-            if retry_count < 1:
-                time.sleep(5)
-                logger.warn("[OPEN_AI] ImgCreate RateLimit exceed, 第{}次重试".format(retry_count + 1))
-                return self.create_img(query, retry_count + 1)
-            else:
-                return False, "画图出现问题，请休息一下再问我吧"
+        # except openai.error.RateLimitError as e:
+        #     logger.warn(e)
+        #     if retry_count < 1:
+        #         time.sleep(5)
+        #         logger.warn("[OPEN_AI] ImgCreate RateLimit exceed, 第{}次重试".format(retry_count + 1))
+        #         return self.create_img(query, retry_count + 1)
+        #     else:
+        #         return False, "画图出现问题，请休息一下再问我吧"
         except Exception as e:
             logger.exception(e)
             return False, "画图出现问题，请休息一下再问我吧"
