@@ -321,6 +321,13 @@ class Godcmd(Plugin):
                         ok, result = True, "会话已重置"
                     else:
                         ok, result = False, "当前对话机器人不支持重置会话"
+                elif cmd == "满意":
+                    ok, result = True, "感谢您的评价"
+                elif cmd == "不满意":
+                    ok, result = True, "感谢您的评价，如果有任何反馈，请发送 #反馈 开头的消息给我们提供反馈，谢谢"
+                elif cmd == "反馈":
+                    ok, result = True, "感谢您的反馈，我们会尽快处理"
+
                 logger.debug("[Godcmd] command: %s by %s" % (cmd, user))
             elif any(cmd in info["alias"] for info in ADMIN_COMMANDS.values()):
                 if isadmin:
