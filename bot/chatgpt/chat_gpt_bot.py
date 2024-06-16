@@ -142,8 +142,8 @@ class ChatGPTBot(Bot, OpenAIImage):
             if response.headers.get('content-type') == 'text/plain; charset=utf-8':
                 logger.info("Answer from library: " + response.content.decode('utf-8'))
                 response_str = (response.content.decode('utf-8') + "\n问题回答完毕").split('\n\n')
-
-                yield (ret for ret in response_str)
+                for line in response_str:
+                    yield line
             else:
                 for line in response.iter_content(chunk_size=4096):
                     if line:
