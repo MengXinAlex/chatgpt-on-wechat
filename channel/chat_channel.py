@@ -161,7 +161,7 @@ class ChatChannel(Channel):
             if "desire_rtype" not in context and conf().get("voice_reply_voice") and ReplyType.VOICE not in self.NOT_SUPPORT_REPLYTYPE:
                 context["desire_rtype"] = ReplyType.VOICE
 
-        self._reset_timer(context["session_id"])
+        self._reset_timer(context)
 
         return context
 
@@ -312,19 +312,18 @@ class ChatChannel(Channel):
                 time.sleep(3 + 3 * retry_cnt)
                 self._send(reply, context, retry_cnt + 1)
 
-    def _reset_timer(self, session_id):
+    def _reset_timer(self, context: Context):
+        session_id = context["session_id"]
         if session_id in self.timers:
             self.timers[session_id].cancel()  # 取消现有的计时器
-        timer = threading.Timer(6, self._send_proactive_message, [session_id])  # 创建一个新的计时器，时间为10分钟（600秒）
+        timer = threading.Timer(6, self._send_proactive_message, [context])  # 创建一个新的计时器，时间为10分钟（600秒）
         self.timers[session_id] = timer
         timer.start()  # 启动计时器
 
-    def _send_proactive_message(self, session_id):
+    def _send_proactive_message(self, context: Context):
         proactive_message = ("您已经很长时间没有发消息了，请问您体验如何？\n <a href=\"weixin://bizmsgmenu?msgmenucontent=#满意&msgmenuid=1"
                              "\">满意</a> \n <a "
                              "href=\"weixin://bizmsgmenu?msgmenucontent=#不满意&msgmenuid=1\">不满意</a>")  # 定义主动推送的消息
-        context = Context(ContextType.TEXT, proactive_message)
-        context["session_id"] = session_id
         self._send(Reply(ReplyType.TEXT, proactive_message), context)
 
     def _success_callback(self, session_id, **kwargs):  # 线程正常结束时的回调函数
