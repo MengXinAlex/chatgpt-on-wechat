@@ -57,7 +57,9 @@ class Query:
                 if context:
                     channel.produce(context)
                 # The reply will be sent by channel.send() in another thread
-                reply_text = "正在生成答案中，请稍后"
+                reply_text = ""
+                if content.startswith("#"):
+                    reply_text = "正在生成答案中，请稍后"
                 replyPost = create_reply(reply_text, msg)
                 return encrypt_func(replyPost.render())
                 # return "success"
