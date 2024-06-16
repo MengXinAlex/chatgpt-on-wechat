@@ -141,12 +141,14 @@ class ChatGPTBot(Bot, OpenAIImage):
 
             if response.headers.get('content-type') == 'text/plain; charset=utf-8':
                 logger.info("Answer from library: " + response.content.decode('utf-8'))
-                yield response.content.decode('utf-8') + "\n问题回答完毕"
+                response_str = (response.content.decode('utf-8') + "\n问题回答完毕").split('\n\n')
+
+                yield (ret for ret in response_str)
             else:
                 for line in response.iter_content(chunk_size=4096):
                     if line:
                         response_str = line.decode('utf-8').replace('*', '')
-                        if len(response_str) - len(response_prev) > 200:
+                        if len(response_str) - len(response_prev) > 300:
                             # find the last \n in response_str
                             last_newline = response_str.rfind('\n')
                             if last_newline != -1:

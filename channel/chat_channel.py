@@ -313,10 +313,12 @@ class ChatChannel(Channel):
                 self._send(reply, context, retry_cnt + 1)
 
     def _reset_timer(self, context: Context):
+        if context.content.startswith("#"):
+            return # 管理命令不重置计时器
         session_id = context["session_id"]
         if session_id in self.timers:
             self.timers[session_id].cancel()  # 取消现有的计时器
-        timer = threading.Timer(6, self._send_proactive_message, [context])  # 创建一个新的计时器，时间为10分钟（600秒）
+        timer = threading.Timer(600, self._send_proactive_message, [context])  # 创建一个新的计时器，时间为10分钟（600秒）
         self.timers[session_id] = timer
         timer.start()  # 启动计时器
 
