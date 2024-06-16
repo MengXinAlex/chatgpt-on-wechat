@@ -28,6 +28,7 @@ class ChatChannel(Channel):
     futures = {}  # 记录每个session_id提交到线程池的future对象, 用于重置会话时把没执行的future取消掉，正在执行的不会被取消
     sessions = {}  # 用于控制并发，每个session_id同时只能有一个context在处理
     lock = threading.Lock()  # 用于控制对sessions的访问
+    timers = {}  # 用于记录每个session_id的计时器
 
     def __init__(self):
         _thread = threading.Thread(target=self.consume)
@@ -308,6 +309,21 @@ class ChatChannel(Channel):
             if retry_cnt < 2:
                 time.sleep(3 + 3 * retry_cnt)
                 self._send(reply, context, retry_cnt + 1)
+
+    def _reset_timer(self, session_id):
+        if session_id in self.timers:
+            self.timers[session_id].cancel()  # 取消现有的计时器
+        timer = threading.Timer(6, self._send_proactive_message, [session_id])  # 创建一个新的计时器，时间为10分钟（600秒）
+        self.timers[session_id] = timer
+        timer.start()  # 启动计时器
+
+    def _send_proactive_message(self, session_id):
+        proactive_message = ("您已经很长时间没有发消息了，请问您体验如何？\n <a href=\"weixin://bizmsgmenu?msgmenucontent=#满意&msgmenuid=1"
+                             "\">满意</a> \n <a "
+                             "href=\"weixin://bizmsgmenu?msgmenucontent=#不满意&msgmenuid=1\">不满意</a>")  # 定义主动推送的消息
+        context = Context(ContextType.TEXT, proactive_message)
+        context["session_id"] = session_id
+        self._send(Reply(ReplyType.TEXT, proactive_message), context)
 
     def _success_callback(self, session_id, **kwargs):  # 线程正常结束时的回调函数
         logger.debug("Worker return success, session_id = {}".format(session_id))
