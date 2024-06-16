@@ -161,6 +161,8 @@ class ChatChannel(Channel):
             if "desire_rtype" not in context and conf().get("voice_reply_voice") and ReplyType.VOICE not in self.NOT_SUPPORT_REPLYTYPE:
                 context["desire_rtype"] = ReplyType.VOICE
 
+        self._reset_timer(context["session_id"])
+
         return context
 
     def _handle(self, context: Context):
