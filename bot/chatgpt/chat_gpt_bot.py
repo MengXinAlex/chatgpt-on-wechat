@@ -64,6 +64,12 @@ class ChatGPTBot(Bot, OpenAIImage):
             elif query == "我在测试消息跳转":
                 load_config()
                 reply = ["<a href=\"weixin://bizmsgmenu?msgmenucontent=我膝盖不舒服&msgmenuid=1\">请点击文字</a>"]
+            elif query == "$满意":
+                load_config()
+                reply = ["感谢您的评价"]
+            elif query == "$不满意":
+                load_config()
+                reply = ["感谢您的评价，请发送 “#反馈 ” 开头的消息给我们提供反馈。如果您对医学回答不满意，请发送您的问题，后台的医生看到消息后会给您提供更专业的医学回答。如果您对产品功能有不满意，请发送您的意见，我们会根据您的意见进行优化。谢谢！"]
             if reply:
                 return reply
             session = self.sessions.session_query(query, session_id)
@@ -154,21 +160,21 @@ class ChatGPTBot(Bot, OpenAIImage):
                             if last_newline != -1:
                                 # logger.info("yield response_str: " + response_str[:last_newline])
                                 # logger.info("response_prev: " + response_prev)
-                                yield response_str[len(response_prev):last_newline]
+                                yield response_str[len(response_prev):last_newline].strip()
                                 response_prev = response_str[:last_newline]
                             else:
                                 # logger.info("yield response_str_no_line: " + response_str)
                                 # logger.info("response_prev_no_line: " + response_prev)
-                                yield response_str[len(response_prev):]
+                                yield response_str[len(response_prev):].strip()
                                 response_prev = response_str
 
                 logger.info("final response body: " + response_str)
 
-                json_response = response_str[len(response_prev):] + "\n问题回答完毕"
+                str_response = (response_str[len(response_prev):] + "\n问题回答完毕").strip()
 
-                logger.info("last response_str: " + json_response)
+                logger.info("last response_str: " + str_response)
 
-                yield json_response
+                yield str_response
         except Exception as e:
             need_retry = retry_count < 2
             result = {"completion_tokens": 0, "content": "我现在有点累了，等会再来吧"}
