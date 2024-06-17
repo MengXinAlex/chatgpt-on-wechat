@@ -64,10 +64,10 @@ class ChatGPTBot(Bot, OpenAIImage):
             elif query == "我在测试消息跳转":
                 load_config()
                 reply = ["<a href=\"weixin://bizmsgmenu?msgmenucontent=我膝盖不舒服&msgmenuid=1\">请点击文字</a>"]
-            elif query == "$满意":
+            elif query == "满意":
                 load_config()
                 reply = ["感谢您的评价"]
-            elif query == "$不满意":
+            elif query == "不满意":
                 load_config()
                 reply = ["感谢您的评价，请发送 “#反馈 ” 开头的消息给我们提供反馈。如果您对医学回答不满意，请发送您的问题，后台的医生看到消息后会给您提供更专业的医学回答。如果您对产品功能有不满意，请发送您的意见，我们会根据您的意见进行优化。谢谢！"]
             if reply:

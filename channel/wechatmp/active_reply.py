@@ -58,7 +58,7 @@ class Query:
                     channel.produce(context)
                 # The reply will be sent by channel.send() in another thread
                 reply_text = ""
-                if not content.startswith("#") and not content.startswith("$"):
+                if not content.startswith("#") and not content == "满意" and not content == "不满意":
                     reply_text = "正在生成答案中，请稍后"
                 replyPost = create_reply(reply_text, msg)
                 return encrypt_func(replyPost.render())

@@ -323,9 +323,9 @@ class ChatChannel(Channel):
         timer.start()  # 启动计时器
 
     def _send_proactive_message(self, context: Context):
-        proactive_message = ("您已经很长时间没有发消息了，请问您体验如何？\n <a href=\"weixin://bizmsgmenu?msgmenucontent=$满意&msgmenuid=1"
+        proactive_message = ("您已经很长时间没有发消息了，请问您体验如何？\n <a href=\"weixin://bizmsgmenu?msgmenucontent=满意&msgmenuid=1"
                              "\">满意</a> \n <a "
-                             "href=\"weixin://bizmsgmenu?msgmenucontent=$不满意&msgmenuid=1\">不满意</a>")  # 定义主动推送的消息
+                             "href=\"weixin://bizmsgmenu?msgmenucontent=不满意&msgmenuid=1\">不满意</a>")  # 定义主动推送的消息
         self._send(Reply(ReplyType.TEXT, proactive_message), context)
 
     def _success_callback(self, session_id, **kwargs):  # 线程正常结束时的回调函数
