@@ -313,7 +313,7 @@ class ChatChannel(Channel):
                 self._send(reply, context, retry_cnt + 1)
 
     def _reset_timer(self, context: Context):
-        if context.content.startswith("#") or context.content == "满意" or context.content == "不满意"
+        if context.content.startswith("#") or context.content == "满意" or context.content == "不满意":
             return # 管理命令不重置计时器
         session_id = context["session_id"]
         if session_id in self.timers:
