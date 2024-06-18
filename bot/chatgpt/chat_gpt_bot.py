@@ -18,6 +18,38 @@ from common.token_bucket import TokenBucket
 from config import conf, load_config
 
 
+def split_text_into_chunks(text, num_chunks):
+    # 确保输入的段数合理
+    if num_chunks <= 0:
+        raise ValueError("num_chunks must be a positive integer")
+
+    # 根据双换行符号分割文本
+    paragraphs = text.split('\n\n')
+
+    # 计算每段的平均长度
+    avg_length = len(paragraphs) // num_chunks
+
+    chunks = []
+    current_chunk = []
+    current_length = 0
+
+    for paragraph in paragraphs:
+        current_chunk.append(paragraph)
+        current_length += 1
+
+        # 如果当前段落数达到平均长度，并且还没有到最后一个段，则结束当前段
+        if current_length >= avg_length and len(chunks) < num_chunks - 1:
+            chunks.append('\n\n'.join(current_chunk))
+            current_chunk = []
+            current_length = 0
+
+    # 将剩余的段落加入最后一段
+    if current_chunk:
+        chunks.append('\n\n'.join(current_chunk))
+
+    return chunks
+
+
 # OpenAI对话模型API (可用)
 class ChatGPTBot(Bot, OpenAIImage):
     def __init__(self):
@@ -147,7 +179,8 @@ class ChatGPTBot(Bot, OpenAIImage):
 
             if response.headers.get('content-type') == 'text/plain; charset=utf-8':
                 logger.info("Answer from library: " + response.content.decode('utf-8'))
-                response_str = (response.content.decode('utf-8') + "\n问题回答完毕").split('\n\n')
+                # response_str = (response.content.decode('utf-8') + "\n问题回答完毕").split('\n\n')
+                response_str = split_text_into_chunks(response.content.decode('utf-8'), 5)
                 for line in response_str:
                     yield line
             else:
