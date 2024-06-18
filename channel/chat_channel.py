@@ -178,7 +178,7 @@ class ChatChannel(Channel):
                 Reply_content = Reply(ReplyType.TEXT, reply_content)
                 decorated_reply = self._decorate_reply(context, Reply_content)
                 self._send(decorated_reply, context)
-                time.sleep(0.5)
+                time.sleep(2)
         else:
             logger.debug("[WX] ready to handle context: {}".format(context))
 
