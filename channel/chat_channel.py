@@ -180,10 +180,11 @@ class ChatChannel(Channel):
         if context is None or not context.content:
             return
 
+        self._save_chat_history(context)
         if context.type == ContextType.TEXT and not context.content.startswith("#"):
             # reply = self._generate_stream_reply(context)
             context["stream"] = True
-            self._save_chat_history(context)
+
             reply = self._generate_reply(context)
             for reply_content in reply:
                 logger.info("[WX] ready to handle context: type={}, content={}".format(context.type, context.content))
@@ -204,6 +205,8 @@ class ChatChannel(Channel):
             if reply and reply.content:
                 reply = self._decorate_reply(context, reply)
 
+                # 保存聊天记录
+                self._save_chat_history(context, reply.content)
                 # reply的发送步骤
                 self._send_reply(context, reply)
 
@@ -340,6 +343,7 @@ class ChatChannel(Channel):
         proactive_message = ("您已经很长时间没有发消息了，请问您体验如何？\n <a href=\"weixin://bizmsgmenu?msgmenucontent=满意&msgmenuid=1"
                              "\">满意</a> \n <a "
                              "href=\"weixin://bizmsgmenu?msgmenucontent=不满意&msgmenuid=1\">不满意</a>")  # 定义主动推送的消息
+        self._save_chat_history(context, proactive_message)
         self._send(Reply(ReplyType.TEXT, proactive_message), context)
 
     def _success_callback(self, session_id, **kwargs):  # 线程正常结束时的回调函数
@@ -402,7 +406,7 @@ class ChatChannel(Channel):
                             semaphore.release()
             time.sleep(0.1)
 
-    def _save_chat_history(self, context: Context, reply: Reply = None):
+    def _save_chat_history(self, context: Context, reply: str = None):
         try:
             msg = context["msg"]
             receiver_user = msg.to_user_id
