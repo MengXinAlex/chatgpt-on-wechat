@@ -2,9 +2,14 @@ import os
 import re
 import threading
 import time
+from datetime import datetime
+
+import psycopg2
 from asyncio import CancelledError
 from concurrent.futures import Future, ThreadPoolExecutor
 from concurrent import futures
+
+from psycopg2 import sql
 
 from bridge.context import *
 from bridge.reply import *
@@ -12,6 +17,7 @@ from channel.channel import Channel
 from common.dequeue import Dequeue
 from common import memory
 from plugins import *
+from config import conf
 
 try:
     from voice.audio_convert import any_to_wav
@@ -34,6 +40,11 @@ class ChatChannel(Channel):
         _thread = threading.Thread(target=self.consume)
         _thread.setDaemon(True)
         _thread.start()
+
+        # 初始化数据库连接
+        self.conn = psycopg2.connect(**conf().get("DB_CONFIG"))
+        self.cursor = self.conn.cursor()
+
 
     # 根据消息构造context，消息内容相关的触发项写在这里
     def _compose_context(self, ctype: ContextType, content, **kwargs):
@@ -172,13 +183,15 @@ class ChatChannel(Channel):
         if context.type == ContextType.TEXT and not context.content.startswith("#"):
             # reply = self._generate_stream_reply(context)
             context["stream"] = True
+            self._save_chat_history(context)
             reply = self._generate_reply(context)
             for reply_content in reply:
                 logger.info("[WX] ready to handle context: type={}, content={}".format(context.type, context.content))
                 Reply_content = Reply(ReplyType.TEXT, reply_content)
                 decorated_reply = self._decorate_reply(context, Reply_content)
                 self._send(decorated_reply, context)
-                time.sleep(2)
+                self._save_chat_history(context, reply_content)
+                time.sleep(1)
         else:
             logger.debug("[WX] ready to handle context: {}".format(context))
 
@@ -388,6 +401,34 @@ class ChatChannel(Channel):
                         else:
                             semaphore.release()
             time.sleep(0.1)
+
+    def _save_chat_history(self, context: Context, reply: Reply = None):
+        try:
+            msg = context["msg"]
+            receiver_user = msg.to_user_id
+            send_user = msg.from_user_id
+            create_time = datetime.fromtimestamp(msg.create_time)
+            content = context.content
+
+            # 如果有回复，则保存回复内容
+            if reply:
+                content = reply
+                create_time = datetime.now()
+                receiver_user, send_user = send_user, receiver_user
+
+            insert_query = sql.SQL("""
+                INSERT INTO chat_history (receiverUser, sendUser, create_time, content)
+                VALUES (%s, %s, %s, %s)
+            """)
+
+            self.cursor.execute(insert_query, (receiver_user, send_user, create_time, content))
+            self.conn.commit()
+        except Exception as e:
+            logger.exception(f"Failed to save chat history: {e}")
+    def __del__(self):
+        # 关闭数据库连接
+        self.cursor.close()
+        self.conn.close()
 
     # 取消session_id对应的所有任务，只能取消排队的消息和已提交线程池但未执行的任务
     def cancel_session(self, session_id):

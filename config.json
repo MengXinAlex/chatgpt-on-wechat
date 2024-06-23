@@ -31,5 +31,12 @@
   "subscribe_msg": "感谢您关注骨运康AI助手。我是由资深临床医生与AI工程师合作开发的医学科普智能助手，希望能初步解答您关于骨关节运动损伤与康复的疑问！向我提问试试吧！例如：膝盖疼是怎么回事？前交叉韧带断裂一定要做手术吗？肩袖手术后康复多长时间？\n\n温馨提示：我只能给您提供通用性诊疗原则的科普。个性化的健康问题咨询、看影像片子还请交给专业医生！我还在学习成长过程中，部分回答会不准确，还请您谨慎鉴别~",
   "use_linkai": false,
   "linkai_api_key": "",
-  "linkai_app_code": ""
+  "linkai_app_code": "",
+  "DB_CONFIG": {
+    "host": "localhost",
+    "port": 5432,
+    "dbname": "hospital",
+    "user": "alex",
+    "password": "123"
+  }
 }
