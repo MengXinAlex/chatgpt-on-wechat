@@ -173,14 +173,16 @@ class ChatGPTBot(Bot, OpenAIImage):
                 'Content-Type': 'application/json'
             }
 
+            logger.info("[CHATGPT] query={}".format(payload))
+
             response_str = ""
             response_prev = ""
             response = requests.post(url, json=payload, headers=headers, stream=True)
 
             if response.headers.get('content-type') == 'text/plain; charset=utf-8':
-                logger.info("Answer from library: " + response.content.decode('utf-8'))
+                logger.info("[CHATGPT] Answer from library: " + response.content.decode('utf-8'))
                 # response_str = (response.content.decode('utf-8') + "\n问题回答完毕").split('\n\n')
-                response_str = split_text_into_chunks(response.content.decode('utf-8'), 5)
+                response_str = split_text_into_chunks(response.content.decode('utf-8') + "\n问题回答完毕", 5)
                 for line in response_str:
                     yield line
             else:
